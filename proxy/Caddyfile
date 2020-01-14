@@ -1,0 +1,22 @@
+{$FRONTEND_URL} {$FRONTEND_URL_WWW} {
+  proxy / frontend
+  header / -Server
+  tls {$TLS} 
+}
+
+{$BACKEND_URL} {
+  proxy / backend:8000 {
+    header_downstream Access-Control-Allow-Origin {$ACCESS_CONTROL_ALLOW_ORIGIN}
+    header_downstream Access-Control-Allow-Headers Content-Type
+    except /media /static
+  }
+
+  header / -Server
+  root /var/www
+  tls {$TLS} 
+  log stdout
+}
+
+(dns_digitalocean) {
+  dns digitalocean
+}

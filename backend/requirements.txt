@@ -1,0 +1,9 @@
+Django
+six
+gunicorn
+psycopg2-binary
+djangorestframework
+django-rest-auth
+django-allauth
+djangorestframework-jwt
+ipython

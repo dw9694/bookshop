@@ -1,0 +1,61 @@
+version: '3'
+
+services:
+  frontend:
+    build: ./frontend
+    networks:
+      - proxy_network
+
+  backend:
+    build: ./backend
+    environment:
+      - SECRET
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+    volumes:
+      - static:/opt/services/backend/static
+    networks:
+      - proxy_network
+      - db_network
+    depends_on:
+      - db
+
+  proxy:
+    build: ./proxy
+    ports:
+      - 80:80
+      - 443:443
+    environment:
+      - FRONTEND_URL
+      - FRONTEND_URL_WWW
+      - BACKEND_URL
+      - ACCESS_CONTROL_ALLOW_ORIGIN
+      - TLS
+      - DO_AUTH_TOKEN
+    volumes:
+      - /root/.caddy:/root/.caddy
+      - static:/var/www/static
+    networks:
+      - proxy_network
+
+  db:
+    image: postgres:12
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+    networks:
+      - db_network
+    volumes:
+      - db_volume:/var/lib/postgresql/data
+
+networks:
+  proxy_network:
+    driver: bridge
+  db_network:
+    driver: bridge
+
+volumes:
+  db_volume:
+  static:

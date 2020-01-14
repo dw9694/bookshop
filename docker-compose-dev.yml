@@ -1,0 +1,60 @@
+version: '3'
+
+services:
+  frontend:
+    build: ./frontend
+    networks:
+      - proxy_network
+
+  backend:
+    build: ./backend
+    environment:
+      - SECRET=12345
+      - DEBUG=True
+      - POSTGRES_USER=database_role
+      - POSTGRES_PASSWORD=database_password
+      - POSTGRES_DB=db
+    volumes:
+      - ./backend:/opt/services/backend
+      - static:/opt/services/backend/static
+    networks:
+      - proxy_network
+      - db_network
+    depends_on:
+      - db
+
+  proxy:
+    build: ./proxy
+    ports:
+      - 8080:8080
+      - 8081:8081
+    environment:
+      - FRONTEND_URL=http://127.0.0.1:8080
+      - BACKEND_URL=http://127.0.0.1:8081
+      - ACCESS_CONTROL_ALLOW_ORIGIN=*
+      - TLS=off
+    volumes:
+      - static:/var/www/static
+    networks:
+      - proxy_network
+
+  db:
+    image: postgres:12
+    environment:
+      - POSTGRES_USER=database_role
+      - POSTGRES_PASSWORD=database_password
+      - POSTGRES_DB=db
+    networks:
+      - db_network
+    volumes:
+      - db_volume:/var/lib/postgresql/data
+
+networks:
+  proxy_network:
+    driver: bridge
+  db_network:
+    driver: bridge
+
+volumes:
+  db_volume:
+  static:
